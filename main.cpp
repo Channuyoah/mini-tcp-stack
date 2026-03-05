@@ -1,25 +1,28 @@
-#include "tcp/state.h"
+#include <iostream>
+#include <queue>
 #include "tcp/tcp.h"
 #include "tcp/packet.h"
+#include "network/network.h"
+#include "tcp/tcp.h"
 
-int main(int argc, char* argv[])
-{
-    tcp_t client, server;
+int main(int argc, char* argv[]) {
+    EventLoop loop;
 
-    tcp_init(&client, CLOSED);
-    tcp_init(&server, LISTEN);
+    TCP client("Client", loop);
+    TCP server("Server", loop);
 
-    // 客户端发送 SYN
-    tcp_packet_t syn = tcp_send_syn(&client);
-    tcp_process(&server, &syn);
+    Network net(loop);
 
-    // 服务器发送 SYN+ACK
-    tcp_packet_t syn_ack = tcp_send_syn_ack(&server);
-    tcp_process(&client, &syn_ack);
+    client.set_network(&net);
+    server.set_network(&net);
 
-    // 客户端发送 ACK
-    tcp_packet_t ack = tcp_send_ack(&client);
-    tcp_process(&server, &ack);
+    net.connect(&client, &server);
+
+    server.set_state(TcpState::LISTEN);
+
+    client.active_open();
+
+    loop.run();
 
     return 0;
 }

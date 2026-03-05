@@ -6,18 +6,33 @@
 #ifndef PACKET_H
 #define PACKET_H
 
-typedef struct {
-  int syn;
-  int ack;
-  int fin;
-  
-  int seq;
-  int ack_seq;
-} tcp_packet_t;
+#pragma once
+#include <string>
+#include <cstdint>
 
-tcp_packet_t packet_create(int syn, int ack, int fin,
-                           int seq, int ack_seq);
+class TCP;
 
-void packet_print(tcp_packet_t *pkt);
+struct Packet {
+    // 控制位
+    bool syn = false;
+    bool ack = false;
+    bool fin = false;
+    
+    // 序号字段
+    uint32_t seq = 0;
+    uint32_t ack_seq = 0;
+
+    // 数据负载
+    std::string payload;
+
+    // 工具函数
+    size_t length() const {
+        return payload.size();
+    }
+
+    bool has_data() const {
+        return !payload.empty();
+    }
+};
 
 #endif
